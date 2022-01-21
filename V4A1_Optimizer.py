@@ -5,8 +5,8 @@ def optimize_SGD(w,eta,nablaE): # compute update step for SGD
     return w-eta*nablaE(w)      # SGD update,see (6.105)  
 
 def optimize_momentum(w,m,eta,beta,nablaE): # compute update step for momentum 
-    #m=???                      # update momentum, see (6.106)
-    #w=???                      # update weights, see (6.107)
+    m=beta*m+nablaE(w)                      # update momentum, see (6.106)
+    w=w-eta*m                      # update weights, see (6.107)
     return w,m
 
 def optimize_Nesterov(w,m,eta,beta,nablaE): # compute update step for Nesterov 
@@ -38,14 +38,14 @@ def optimize_Adadelta(w,v,v_dw,gamma,eps,nablaE): # compute update step for Adad
     #w=???                      # weight update
     return w,v,v_dw
 
-def optimize_ADAM(w,m,v,tau,eta,beta1,beta2,eps,nablaE): # compute update step for ADAM
-    #g=                         # get gradient for weights w
-    #m=                         # update first moment, see (6.124)
-    #v=                         # update second moment, see (6.125)
-    #m_hat=                     # corrected first moment (6.126)
-    #v_hat=                     # corrected second moment (6.126)
-    #print("m=",m,"v=",v,"m_hat=",m_hat,"v_hat=",v_hat)
-    #w=                         # weight update (6.127)
+def optimize_ADAM(w,m,v,tau,eta,beta1,beta2,eps,nablaE):    # compute update step for ADAM
+    g=nablaE(w)                                             # get gradient for weights w
+    m=beta1*m+(1-beta1*g)                                   # update first moment, see (6.124)
+    v= beta2*v+(1-beta2)*g**2                               # update second moment, see (6.125)
+    m_hat=m/(1-beta1)                                       # corrected first moment (6.126)
+    v_hat=v/(1-beta2)                                       # corrected second moment (6.126)
+    print("m=",m,"v=",v,"m_hat=",m_hat,"v_hat=",v_hat)
+    w=(-eta*m)/np.sqrt(v-eps)                               # weight update (6.127)
     return w,m,v
 
 def getOptimizationTrajectory(alg,w0,T,par,nablaE,HE=None,E=None,debug=0):
@@ -104,15 +104,15 @@ if __name__ == '__main__':
     
     # (ii) define parameters
     par={}      # init parameter dict
-    par['eta'  ]=0.01          # learning rate
-    par['beta1']=0.9           # decay rate for ADAM momentum
-    par['beta2']=0.999         # decay rate for ADAM variance
+    par['eta'  ]=0.05           # learning rate
+    par['beta1']=0.1           # decay rate for ADAM momentum
+    par['beta2']=0.7         # decay rate for ADAM variance
     par['eps'  ]=1e-8          # numeric stability parameter
     par['beta' ]=par['beta1']  # decay rate for momentum
     par['gamma']=par['beta1']  # decay rate for Adadelta
-    alg='SGD'   # choose between 'SGD', 'MOMENTUM', 'NESTEROV', 'ADAGRAD', 'RMSprop', 'NEWTON', 'ADADELTA', 'ADAM'
+    alg='ADAM'   # choose between 'SGD', 'MOMENTUM', 'NESTEROV', 'ADAGRAD', 'RMSprop', 'NEWTON', 'ADADELTA', 'ADAM'
     w0=np.array([2,1],'float') # initial weights
-    T=10        # number of learning steps (use 3 to verify Uebungsaufgabe 6.11.c; use 500 to observe convergence) 
+    T=6        # number of learning steps (use 3 to verify Uebungsaufgabe 6.11.c; use 500 to observe convergence) 
     debug=1     # if >0 then print detailed information
     
     # (iii) compute optimization trajectory by doing T learning steps
